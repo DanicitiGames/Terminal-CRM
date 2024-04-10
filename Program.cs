@@ -1,58 +1,17 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 
-public class Empresa
+public class Produto
 {
     public string nome { get; private set; }
-    public string? cnpj { get; private set; }
-    public string? telefone { get; private set; }
-    public string? email { get; private set; }
-    public string? endereco { get; private set; }
+    public string descricao { get; private set; }
 
-    public Empresa(string nome, string? cnpj = null, string? telefone = null, string? email = null, string? endereco = null)
+    public Produto(string nome, string descricao)
     {
         this.nome = nome;
-        this.cnpj = cnpj;
-        this.telefone = telefone;
-        this.email = email;
-        this.endereco = endereco;
+        this.descricao = descricao;
     }
 
-    public bool definirCNPJ(string cnpj)
-    {
-        string numeros = Regex.Replace(cnpj, "[^0-9]", "");
-        if(numeros.Length != 14 && cnpj.Length != 0) return false;
-        this.cnpj = numeros;
-        return true;
-    }
-
-    public bool definirTelefone(string telefone)
-    {
-        string numeros = Regex.Replace(telefone, "[^0-9]", "");
-        if(numeros.Length < 8 && telefone.Length != 0) return false;
-        this.telefone = numeros;
-        return true;
-    }
-
-    public bool definirEmail(string email)
-    {
-        if(!email.Contains("@") && email.Length != 0) return false;
-        this.email = email;
-        return true;
-    }
-
-    public bool definirEndereco(string endereco)
-    {
-        this.endereco = endereco;
-        return true;
-    }
-
-    public bool definirNome(string nome)
-    {
-        if(nome.Length == 0) return false;
-        this.nome = nome;
-        return true;
-    }
 }
 
 public class Program
@@ -70,6 +29,116 @@ public class Program
     public static void Menu()
     {
         Console.Clear();
-        
+        Console.WriteLine("1 - Produtos");
+        Console.WriteLine("2 - Estoque");
+        Console.WriteLine("3 - Vendas");
+        Console.WriteLine("4 - Compras");
+        Console.WriteLine("5 - Clientes");
+        Console.WriteLine("6 - Fornecedores");
+        Console.WriteLine("7 - Relatórios");
+        Console.WriteLine("8 - Configurações");
+        Console.WriteLine("9 - Sair");
+        Console.Write("Escolha uma opção: ");
+        string opcao = Console.ReadLine()+"";
+        switch(opcao)
+        {
+            case "1":
+                MenuProdutos();
+                break;
+            case "2":
+                //Estoque();
+                break;
+            case "3":
+                //Vendas();
+                break;
+            case "4":
+                //Compras();
+                break;
+            case "5":
+                //Clientes();
+                break;
+            case "6":
+                //Fornecedores();
+                break;
+            case "7":
+                //Relatorios();
+                break;
+            case "8":
+                //Configuracoes();
+                break;
+            case "9":
+                Environment.Exit(0);
+                break;
+            default:
+                Console.WriteLine("Opção inválida!");
+                break;
+        }
+    }
+
+    public static void MenuProdutos()
+    {
+        while (true)
+        {
+            Console.Clear();
+            Console.WriteLine("1 - Cadastrar");
+            Console.WriteLine("2 - Editar");
+            Console.WriteLine("3 - Excluir");
+            Console.WriteLine("4 - Listar");
+            Console.WriteLine("5 - Voltar");
+            Console.Write("Escolha uma opção: ");
+            string? opcao = Console.ReadLine();
+            switch(opcao)
+            {
+                case "1":
+                    MenuCadastrarProduto();
+                    break;
+                case "2":
+                    Console.WriteLine("Editar");
+                    break;
+                case "3":
+                    Console.WriteLine("Excluir");
+                    break;
+                case "4":
+                    Console.WriteLine("Listar");
+                    break;
+                case "5":
+                    return;
+                default:
+                    break;
+            }
+        }
+    }
+
+    public static void MenuCadastrarProduto()
+    {
+        Console.Clear();
+        Console.WriteLine("Cadastrar Produto:");
+        string? nome, descricao, preco, categoria, quantidadeEstoque, permitirVendaSemEstoque;
+        while(true)
+        {
+            nome = Console.ReadLine();
+            if(nome != null && nome.Length != 0) break;
+        }
+        Console.Write("Descrição: ");
+        descricao = Console.ReadLine();
+        Console.Write("Preço: ");
+        preco = Console.ReadLine();
+        Console.Write("Categoria: (ex: Eletrônicos, Roupas, Alimentos) ");
+        categoria = Console.ReadLine();
+        Console.Write("Quantidade em estoque: ");
+        quantidadeEstoque = Console.ReadLine();
+        Console.Write("Permitir vendas sem estoque? (s/n) ");
+        permitirVendaSemEstoque = Console.ReadLine();
+
+        if(descricao == null) descricao = "";
+        if(preco == null) preco = "0";
+        if(categoria == null) categoria = "Sem categoria";
+        if(quantidadeEstoque == null) quantidadeEstoque = "0";
+        if(permitirVendaSemEstoque != "s") permitirVendaSemEstoque = "n";
+
+        Produto produto = new Produto(nome, descricao);
+        Console.WriteLine("Produto cadastrado com sucesso!");
+        Console.WriteLine("Pressione qualquer tecla para voltar...");
+        Console.ReadKey();
     }
 }

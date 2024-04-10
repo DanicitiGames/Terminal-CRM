@@ -1,0 +1,14 @@
+C:\Users\Danie\Desktop\Manager Software\bin\Debug\net8.0\Manager Software.exe
+C:\Users\Danie\Desktop\Manager Software\bin\Debug\net8.0\Manager Software.deps.json
+C:\Users\Danie\Desktop\Manager Software\bin\Debug\net8.0\Manager Software.runtimeconfig.json
+C:\Users\Danie\Desktop\Manager Software\bin\Debug\net8.0\Manager Software.dll
+C:\Users\Danie\Desktop\Manager Software\bin\Debug\net8.0\Manager Software.pdb
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\Manager Software.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\Manager Software.AssemblyInfoInputs.cache
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\Manager Software.AssemblyInfo.cs
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\Manager Software.csproj.CoreCompileInputs.cache
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\Manager Software.dll
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\refint\Manager Software.dll
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\Manager Software.pdb
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\Manager Software.genruntimeconfig.cache
+C:\Users\Danie\Desktop\Manager Software\obj\Debug\net8.0\ref\Manager Software.dll

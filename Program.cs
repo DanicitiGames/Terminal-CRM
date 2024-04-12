@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 public class Produto
 {
     public int codigo { get; private set; }
+    public int codigoFornecedor { get; set; }
     public string nome { get; set; }
     public string descricao { get; set; }
     public double preco { get; set; }
@@ -44,12 +45,34 @@ public class Cliente
     }
 }
 
+public class Fornecedor
+{
+    public int codigo { get; private set; }
+    public string nome { get; set; }
+    public string cnpj { get; set; }
+    public string endereco { get; set; }
+    public string telefone { get; set; }
+    public string email { get; set; }
+
+    public Fornecedor(int codigo, string nome, string cnpj, string endereco, string telefone, string email)
+    {
+        this.codigo = codigo;
+        this.nome = nome;
+        this.cnpj = cnpj;
+        this.endereco = endereco;
+        this.telefone = telefone;
+        this.email = email;
+    }
+}
+
 public class Program
 {
     private static int quantidadeProdutos = 0;
-    private static List<Produto> produtos = new List<Produto>();
     private static int quantidadeClientes = 0;
+    private static int quantidadeFornecedores = 0;
+    private static List<Produto> produtos = new List<Produto>();
     private static List<Cliente> clientes = new List<Cliente>();
+    private static List<Fornecedor> fornecedores = new List<Fornecedor>();
 
 	public static void Main()
 	{
@@ -79,7 +102,7 @@ public class Program
                 MenuClientes();
                 break;
             case 5:
-                //Fornecedores();
+                MenuFornecedores();
                 break;
             case 6:
                 //Relatorios();
@@ -466,6 +489,131 @@ public class Program
         PressioneQualquerTecla();
     }
 
+    public static void MenuFornecedores()
+    {
+        List<string> opcoes = new List<string> { "Cadastrar", "Editar", "Excluir", "Listar", "Voltar" };
+        int indice = MenuTool_Navegar("Fornecedores:", opcoes);
+
+        switch(indice)
+        {
+            case 0:
+                MenuCadastrarFornecedor();
+                break;
+            case 1:
+                MenuEditarFornecedor();
+                break;
+            case 2:
+                MenuExcluirFornecedor();
+                break;
+            case 3:
+                MenuListarFornecedores();
+                break;
+            case -1:
+            case 4:
+                return;
+        }
+        MenuFornecedores();
+    }
+
+    public static void MenuCadastrarFornecedor()
+    {
+        Console.Clear();
+        Console.WriteLine("Cadastrar Fornecedor:");
+        string nome, cnpj, endereco, telefone, email;
+        
+        nome = MenuTool_Input("Nome: ", true);
+        cnpj = MenuTool_Input("CNPJ: ", false);
+        endereco = MenuTool_Input("Endereço: ", false);
+        telefone = MenuTool_Input("Telefone: ", false);
+        email = MenuTool_Input("E-mail: ", false);
+
+        quantidadeFornecedores++;
+        Fornecedor fornecedor = new Fornecedor(quantidadeFornecedores, nome, cnpj, endereco, telefone, email);
+        fornecedores.Add(fornecedor);
+        
+        Alert("Fornecedor cadastrado com sucesso!");
+    }
+
+    public static void MenuEditarFornecedor()
+    {
+        Console.Clear();
+        if(fornecedores.Count == 0)
+        {
+            Alert("Nenhum fornecedor cadastrado!");
+            return;
+        }
+
+        Fornecedor? fornecedor = MenuTool_NavegarFornecedor("Editar fornecedor:");
+        if(fornecedor == null) return;
+
+        List<string> opcoes = new List<string> { $"Nome: {fornecedor.nome}", $"CNPJ: {fornecedor.cnpj}", $"Endereço: {fornecedor.endereco}", $"Telefone: {fornecedor.telefone}", $"E-mail: {fornecedor.email}", "Voltar" };
+        int indice = MenuTool_Navegar("Editar fornecedor:", opcoes);
+
+        switch(indice)
+        {
+            case 0:
+                string novoNome = MenuTool_Input("Novo nome: ", true);
+                if(novoNome.Length != 0) fornecedor.nome = novoNome;
+                break;
+            case 1:
+                string novoCNPJ = MenuTool_Input("Novo CNPJ: ", true);
+                if(novoCNPJ.Length != 0) fornecedor.cnpj = novoCNPJ;
+                break;
+            case 2:
+                fornecedor.endereco = MenuTool_Input("Novo endereço: ", false);
+                break;
+            case 3:
+                fornecedor.telefone = MenuTool_Input("Novo telefone: ", false);
+                break;
+            case 4:
+                fornecedor.email = MenuTool_Input("Novo e-mail: ", false);
+                break;
+            case -1:
+            case 5:
+                return;
+            default:
+                break;
+        }
+        MenuEditarFornecedor();
+    }
+
+    public static void MenuExcluirFornecedor()
+    {
+        Console.Clear();
+
+        if(fornecedores.Count == 0)
+        {
+            Alert("Nenhum fornecedor cadastrado!");
+            return;
+        }
+
+        Fornecedor? fornecedor = MenuTool_NavegarFornecedor("Excluir fornecedor:");
+        if(fornecedor == null) return;
+
+        bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este fornecedor ({fornecedor.nome})?");
+        if(!resposta) return;
+        fornecedores.Remove(fornecedor);
+    }
+
+    public static void MenuListarFornecedores()
+    {
+        Console.Clear();
+        if(fornecedores.Count == 0)
+        {
+            Alert("Nenhum fornecedor cadastrado!");
+            return;
+        }
+        Console.WriteLine("Fornecedores:");
+        foreach(Fornecedor fornecedor in fornecedores)
+        {
+            Console.WriteLine($"#{fornecedor.codigo} - {fornecedor.nome}");
+        }
+        Console.WriteLine();
+        PressioneQualquerTecla();
+    }
+
+
+
 
 
     public static bool IntVerificadorPositiva(int valor)
@@ -607,6 +755,42 @@ public class Program
                 case ConsoleKey.Enter:
                     Console.Clear();
                     return clientes[indice];
+                default:
+                    break;
+            }
+        }
+    }
+    public static Fornecedor? MenuTool_NavegarFornecedor(string titulo)
+    {
+        int indice = 0;
+        while(true)
+        {
+            Console.Clear();
+            if(titulo != "") Console.WriteLine(titulo);
+            Console.WriteLine("Escolha um fornecedor utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            for(int i = 0; i < fornecedores.Count; i++)
+            {
+                if(i == indice) Console.Write(">");
+                else Console.Write(" ");
+                Console.WriteLine("#"+fornecedores[i].codigo+" - "+fornecedores[i].nome);
+            }
+            Console.WriteLine();
+            switch(Console.ReadKey().Key)
+            {
+                case ConsoleKey.UpArrow:
+                    if(indice > 0) indice--;
+                    else indice = fornecedores.Count-1;
+                    break;
+                case ConsoleKey.DownArrow:
+                    if(indice < fornecedores.Count-1) indice++;
+                    else indice = 0;
+                    break;
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.Backspace:
+                    return null;
+                case ConsoleKey.Enter:
+                    Console.Clear();
+                    return fornecedores[indice];
                 default:
                     break;
             }

@@ -1,6 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Nodes;
+
+public class Dados
+{
+    public List<Produto> produtos { get; set; }
+    public List<Cliente> clientes { get; set; }
+    public List<Fornecedor> fornecedores { get; set; }
+    public int quantidadeProdutos { get; set; }
+    public int quantidadeClientes { get; set; }
+    public int quantidadeFornecedores { get; set; }
+
+    public Dados(List<Produto> produtos, List<Cliente> clientes, List<Fornecedor> fornecedores, int quantidadeProdutos, int quantidadeClientes, int quantidadeFornecedores)
+    {
+        this.produtos = produtos;
+        this.clientes = clientes;
+        this.fornecedores = fornecedores;
+        this.quantidadeProdutos = quantidadeProdutos;
+        this.quantidadeClientes = quantidadeClientes;
+        this.quantidadeFornecedores = quantidadeFornecedores;
+    }
+}
 
 public class Produto
 {
@@ -67,6 +91,8 @@ public class Fornecedor
 
 public class Program
 {
+    private static string caminhoSalvamento = "dados.json";
+
     private static int quantidadeProdutos = 0;
     private static int quantidadeClientes = 0;
     private static int quantidadeFornecedores = 0;
@@ -76,12 +102,13 @@ public class Program
 
 	public static void Main()
 	{
+        CarregarDados();
         while (true) Menu();
 	}
 
     public static void Menu()
     {
-        List<string> opcoes = new List<string> { "Produtos", "Estoque", "Vendas", "Compras", "Clientes", "Fornecedores", "Relatórios", "Configurações", "Sair" };
+        List<string> opcoes = new List<string> { "Produtos", "Estoque", "Vendas", "Compras", "Clientes", "Fornecedores", "Relatórios", "Histórico", "Configurações", "Sair" };
         int indice = MenuTool_Navegar("Sistema de gerenciamento de vendas:", opcoes);
 
         switch(indice)
@@ -108,9 +135,12 @@ public class Program
                 //Relatorios();
                 break;
             case 7:
-                //Configuracoes();
+                //MenuHistorico();
                 break;
             case 8:
+                MenuConfiguracoes();
+                break;
+            case 9:
                 Environment.Exit(0);
                 break;
         }
@@ -161,6 +191,7 @@ public class Program
         Produto produto = new Produto(quantidadeProdutos, nome, descricao, MenuTool_TentarConverterParaDouble(preco), categoria, MenuTool_TentarConverterParaInteiro(quantidadeEstoque), permitirVendaSemEstoque.ToLower() == "s");
         produtos.Add(produto);
         
+        SalvarDados();
         Alert("Produto cadastrado com sucesso!");
     }
     
@@ -184,27 +215,33 @@ public class Program
             case 0:
                 string novoNome = MenuTool_Input("Novo nome: ", true);
                 if(novoNome.Length != 0) produto.nome = novoNome;
+                SalvarDados();
                 break;
             case 1:
                 produto.descricao = MenuTool_Input("Nova descrição: ", false);
+                SalvarDados();
                 break;
             case 2:
                 string novoPreco = MenuTool_Input("Novo preço: ", false).Replace(".", ",");
                 double novoPrecoDouble = MenuTool_TentarConverterParaDouble(novoPreco);
                 if(novoPrecoDouble > 0) produto.preco = novoPrecoDouble;
+                SalvarDados();
                 break;
             case 3:
                 produto.categoria = MenuTool_Input("Nova categoria: ", false);
                 if(produto.categoria == "") produto.categoria = "Sem categoria";
+                SalvarDados();
                 break;
             case 4:
                 string novaQuantidadeEstoque = MenuTool_Input("Nova quantidade em estoque: ", false);
                 int novaQuantidadeEstoqueInt = MenuTool_TentarConverterParaInteiro(novaQuantidadeEstoque);
                 if(novaQuantidadeEstoqueInt > 0) produto.quantidadeEstoque = novaQuantidadeEstoqueInt;
+                SalvarDados();
                 break;
             case 5:
                 string permitirVendaSemEstoque = MenuTool_Input("Permitir vendas sem estoque? (s/n) ", false);
                 produto.permitirVendaSemEstoque = permitirVendaSemEstoque.ToLower() == "s";
+                SalvarDados();
                 break;
             case -1:
             case 6:
@@ -231,6 +268,7 @@ public class Program
         bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este produto ({produto.nome})?");
         if(!resposta) return;
         produtos.Remove(produto);
+        SalvarDados();
     }
     
     public static void MenuListarProdutos()
@@ -318,6 +356,7 @@ public class Program
         if(IntVerificadorPositiva(quantidadeInt) == false) return;
 
         produto.quantidadeEstoque += quantidadeInt;
+        SalvarDados();
         Alert("Estoque atualizado com sucesso!");
     }
 
@@ -346,6 +385,7 @@ public class Program
         }
 
         produto.quantidadeEstoque -= quantidadeInt;
+        SalvarDados();
         Alert("Estoque atualizado com sucesso!");
     }
 
@@ -408,6 +448,7 @@ public class Program
         Cliente cliente = new Cliente(quantidadeClientes, nome, cpf, endereco, telefone, email);
         clientes.Add(cliente);
         
+        SalvarDados();
         Alert("Cliente cadastrado com sucesso!");
     }
 
@@ -431,19 +472,24 @@ public class Program
             case 0:
                 string novoNome = MenuTool_Input("Novo nome: ", true);
                 if(novoNome.Length != 0) cliente.nome = novoNome;
+                SalvarDados();
                 break;
             case 1:
                 string novoCPF = MenuTool_Input("Novo CPF: ", true);
                 if(novoCPF.Length != 0) cliente.cpf = novoCPF;
+                SalvarDados();
                 break;
             case 2:
                 cliente.endereco = MenuTool_Input("Novo endereço: ", false);
+                SalvarDados();
                 break;
             case 3:
                 cliente.telefone = MenuTool_Input("Novo telefone: ", false);
+                SalvarDados();
                 break;
             case 4:
                 cliente.email = MenuTool_Input("Novo e-mail: ", false);
+                SalvarDados();
                 break;
             case -1:
             case 5:
@@ -470,6 +516,7 @@ public class Program
         bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este cliente ({cliente.nome})?");
         if(!resposta) return;
         clientes.Remove(cliente);
+        SalvarDados();
     }
 
     public static void MenuListarClientes()
@@ -491,7 +538,7 @@ public class Program
 
     public static void MenuFornecedores()
     {
-        List<string> opcoes = new List<string> { "Cadastrar", "Editar", "Excluir", "Listar", "Voltar" };
+        List<string> opcoes = new List<string> { "Cadastrar", "Editar", "Definir produtos X fornecedor", "Excluir", "Listar", "Voltar" };
         int indice = MenuTool_Navegar("Fornecedores:", opcoes);
 
         switch(indice)
@@ -503,13 +550,16 @@ public class Program
                 MenuEditarFornecedor();
                 break;
             case 2:
-                MenuExcluirFornecedor();
+                MenuDefinirProdutosFornecedor();
                 break;
             case 3:
+                MenuExcluirFornecedor();
+                break;
+            case 4:
                 MenuListarFornecedores();
                 break;
             case -1:
-            case 4:
+            case 5:
                 return;
         }
         MenuFornecedores();
@@ -531,6 +581,7 @@ public class Program
         Fornecedor fornecedor = new Fornecedor(quantidadeFornecedores, nome, cnpj, endereco, telefone, email);
         fornecedores.Add(fornecedor);
         
+        SalvarDados();
         Alert("Fornecedor cadastrado com sucesso!");
     }
 
@@ -554,19 +605,24 @@ public class Program
             case 0:
                 string novoNome = MenuTool_Input("Novo nome: ", true);
                 if(novoNome.Length != 0) fornecedor.nome = novoNome;
+                SalvarDados();
                 break;
             case 1:
                 string novoCNPJ = MenuTool_Input("Novo CNPJ: ", true);
                 if(novoCNPJ.Length != 0) fornecedor.cnpj = novoCNPJ;
+                SalvarDados();
                 break;
             case 2:
                 fornecedor.endereco = MenuTool_Input("Novo endereço: ", false);
+                SalvarDados();
                 break;
             case 3:
                 fornecedor.telefone = MenuTool_Input("Novo telefone: ", false);
+                SalvarDados();
                 break;
             case 4:
                 fornecedor.email = MenuTool_Input("Novo e-mail: ", false);
+                SalvarDados();
                 break;
             case -1:
             case 5:
@@ -575,6 +631,30 @@ public class Program
                 break;
         }
         MenuEditarFornecedor();
+    }
+
+    public static void MenuDefinirProdutosFornecedor()
+    {
+        Console.Clear();
+        if(fornecedores.Count == 0)
+        {
+            Alert("Nenhum fornecedor cadastrado!");
+            return;
+        }
+        if(produtos.Count == 0)
+        {
+            Alert("Nenhum produto cadastrado!");
+            return;
+        }
+        Produto? produto = MenuTool_NavegarProdutoFornecedor();
+        if(produto == null) return;
+
+        Fornecedor? fornecedor = MenuTool_NavegarFornecedor("Escolha um fornecedor para o produto:");
+        if(fornecedor == null) return;
+
+        produto.codigoFornecedor = fornecedor.codigo;
+        SalvarDados();
+        Alert("Fornecedor definido com sucesso!");
     }
 
     public static void MenuExcluirFornecedor()
@@ -593,6 +673,7 @@ public class Program
         bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este fornecedor ({fornecedor.nome})?");
         if(!resposta) return;
         fornecedores.Remove(fornecedor);
+        SalvarDados();
     }
 
     public static void MenuListarFornecedores()
@@ -612,9 +693,25 @@ public class Program
         PressioneQualquerTecla();
     }
 
+    public static void MenuConfiguracoes()
+    {
+        List<string> opcoes = new List<string> { "Formatar dados", "Caminho de salvamento", "Voltar" };
+        int indice = MenuTool_Navegar("Configurações:", opcoes);
 
-
-
+        switch(indice)
+        {
+            case 0:
+                //FormatarDados();
+                break;
+            case 1:
+                //CaminhoSalvamento();
+                break;
+            case -1:
+            case 2:
+                return;
+        }
+        MenuConfiguracoes();
+    }
 
     public static bool IntVerificadorPositiva(int valor)
     {
@@ -692,15 +789,52 @@ public class Program
         {
             Console.Clear();
             if(titulo != "") Console.WriteLine(titulo);
-            Console.WriteLine("Escolha um produto utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            Console.WriteLine("Escolha utilizando as setas ↑ ↓ ou aperte ← para voltar:");
             for(int i = 0; i < produtos.Count; i++)
             {
                 if(i == indice) Console.Write(">");
                 else Console.Write(" ");
-                Console.Write("#"+produtos[i].codigo+" - "+produtos[i].nome);
-                if(exibirEstoque) Console.Write(" ("+produtos[i].quantidadeEstoque+")");
-                if(exibirPreco) Console.Write(" - R$"+produtos[i].preco);
+                Console.Write($"#{produtos[i].codigo} - {produtos[i].nome}");
+                if(exibirEstoque) Console.Write($" ({produtos[i].quantidadeEstoque})");
+                if(exibirPreco) Console.Write($" - R${produtos[i].preco}");
                 Console.WriteLine();
+            }
+            Console.WriteLine();
+            switch(Console.ReadKey().Key)
+            {
+                case ConsoleKey.UpArrow:
+                    if(indice > 0) indice--;
+                    else indice = produtos.Count-1;
+                    break;
+                case ConsoleKey.DownArrow:
+                    if(indice < produtos.Count-1) indice++;
+                    else indice = 0;
+                    break;
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.Backspace:
+                    return null;
+                case ConsoleKey.Enter:
+                    Console.Clear();
+                    return produtos[indice];
+                default:
+                    break;
+            }
+        }
+    }
+    public static Produto? MenuTool_NavegarProdutoFornecedor()
+    {
+        int indice = 0;
+        while(true)
+        {
+            Console.Clear();
+            Console.WriteLine("Escolha utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            for(int i = 0; i < produtos.Count; i++)
+            {
+                if(i == indice) Console.Write(">");
+                else Console.Write(" ");
+                Fornecedor? fornecedor = fornecedores.Find(f => f.codigo == produtos[i].codigoFornecedor);
+                string fornecedorCodigo = fornecedor != null ? fornecedor.nome : "Sem fornecedor";
+                Console.WriteLine($"#{produtos[i].codigo} - {produtos[i].nome} ({fornecedorCodigo})");
             }
             Console.WriteLine();
             switch(Console.ReadKey().Key)
@@ -731,12 +865,12 @@ public class Program
         {
             Console.Clear();
             if(titulo != "") Console.WriteLine(titulo);
-            Console.WriteLine("Escolha um cliente utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            Console.WriteLine("Escolha utilizando as setas ↑ ↓ ou aperte ← para voltar:");
             for(int i = 0; i < clientes.Count; i++)
             {
                 if(i == indice) Console.Write(">");
                 else Console.Write(" ");
-                Console.WriteLine("#"+clientes[i].codigo+" - "+clientes[i].nome);
+                Console.WriteLine($"#{clientes[i].codigo} - {clientes[i].nome}");
             }
             Console.WriteLine();
             switch(Console.ReadKey().Key)
@@ -767,12 +901,12 @@ public class Program
         {
             Console.Clear();
             if(titulo != "") Console.WriteLine(titulo);
-            Console.WriteLine("Escolha um fornecedor utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            Console.WriteLine("Escolha utilizando as setas ↑ ↓ ou aperte ← para voltar:");
             for(int i = 0; i < fornecedores.Count; i++)
             {
                 if(i == indice) Console.Write(">");
                 else Console.Write(" ");
-                Console.WriteLine("#"+fornecedores[i].codigo+" - "+fornecedores[i].nome);
+                Console.WriteLine($"#{fornecedores[i].codigo} - {fornecedores[i].nome}");
             }
             Console.WriteLine();
             switch(Console.ReadKey().Key)
@@ -822,4 +956,36 @@ public class Program
     }
     public static int MenuTool_TentarConverterParaInteiro(string valor) { try { return int.Parse(valor); } catch { return 0; } }
     public static double MenuTool_TentarConverterParaDouble(string valor) { try { return double.Parse(valor); } catch { return 0; } }
+
+    public static void SalvarDados()
+    {
+        Dados dados = new Dados(produtos, clientes, fornecedores, quantidadeProdutos, quantidadeClientes, quantidadeFornecedores);
+        string json = JsonSerializer.Serialize(dados);
+        File.WriteAllText(caminhoSalvamento, json);
+    }
+
+    public static void CarregarDados()
+    {
+        Console.WriteLine("Carregando dados...");
+        if(File.Exists(caminhoSalvamento))
+        {
+            string json = File.ReadAllText(caminhoSalvamento);
+            JsonSerializerOptions options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            };
+            Dados? dados = JsonSerializer.Deserialize<Dados>(json, options);
+            if(dados != null)
+            {
+                produtos = dados.produtos;
+                clientes = dados.clientes;
+                fornecedores = dados.fornecedores;
+                quantidadeProdutos = dados.quantidadeProdutos;
+                quantidadeClientes = dados.quantidadeClientes;
+                quantidadeFornecedores = dados.quantidadeFornecedores;
+            }
+        }
+    }
 }

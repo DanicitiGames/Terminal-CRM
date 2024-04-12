@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 public class Produto
@@ -23,13 +22,34 @@ public class Produto
         this.quantidadeEstoque = quantidadeEstoque;
         this.permitirVendaSemEstoque = permitirVendaSemEstoque;
     }
+}
 
+public class Cliente
+{
+    public int codigo { get; private set; }
+    public string nome { get; set; }
+    public string cpf { get; set; }
+    public string endereco { get; set; }
+    public string telefone { get; set; }
+    public string email { get; set; }
+
+    public Cliente(int codigo, string nome, string cpf, string endereco, string telefone, string email)
+    {
+        this.codigo = codigo;
+        this.nome = nome;
+        this.cpf = cpf;
+        this.endereco = endereco;
+        this.telefone = telefone;
+        this.email = email;
+    }
 }
 
 public class Program
 {
     private static int quantidadeProdutos = 0;
     private static List<Produto> produtos = new List<Produto>();
+    private static int quantidadeClientes = 0;
+    private static List<Cliente> clientes = new List<Cliente>();
 
 	public static void Main()
 	{
@@ -56,7 +76,7 @@ public class Program
                 //Compras();
                 break;
             case 4:
-                //Clientes();
+                MenuClientes();
                 break;
             case 5:
                 //Fornecedores();
@@ -118,8 +138,7 @@ public class Program
         Produto produto = new Produto(quantidadeProdutos, nome, descricao, MenuTool_TentarConverterParaDouble(preco), categoria, MenuTool_TentarConverterParaInteiro(quantidadeEstoque), permitirVendaSemEstoque.ToLower() == "s");
         produtos.Add(produto);
         
-        Console.WriteLine("Produto cadastrado com sucesso!\n\nPressione qualquer tecla para voltar...");
-        Console.ReadKey();
+        Alert("Produto cadastrado com sucesso!");
     }
     
     public static void MenuEditarProduto()
@@ -127,7 +146,7 @@ public class Program
         Console.Clear();
         if(produtos.Count == 0)
         {
-            Erro("Nenhum produto cadastrado!");
+            Alert("Nenhum produto cadastrado!");
             return;
         }
 
@@ -147,8 +166,9 @@ public class Program
                 produto.descricao = MenuTool_Input("Nova descrição: ", false);
                 break;
             case 2:
-                string? novoPreco = MenuTool_Input("Novo preço: ", false).Replace(".", ",");
-                if(novoPreco.Length != 0) produto.preco = MenuTool_TentarConverterParaDouble(novoPreco);
+                string novoPreco = MenuTool_Input("Novo preço: ", false).Replace(".", ",");
+                double novoPrecoDouble = MenuTool_TentarConverterParaDouble(novoPreco);
+                if(novoPrecoDouble > 0) produto.preco = novoPrecoDouble;
                 break;
             case 3:
                 produto.categoria = MenuTool_Input("Nova categoria: ", false);
@@ -156,7 +176,8 @@ public class Program
                 break;
             case 4:
                 string novaQuantidadeEstoque = MenuTool_Input("Nova quantidade em estoque: ", false);
-                if(novaQuantidadeEstoque.Length != 0) produto.quantidadeEstoque = MenuTool_TentarConverterParaInteiro(novaQuantidadeEstoque);
+                int novaQuantidadeEstoqueInt = MenuTool_TentarConverterParaInteiro(novaQuantidadeEstoque);
+                if(novaQuantidadeEstoqueInt > 0) produto.quantidadeEstoque = novaQuantidadeEstoqueInt;
                 break;
             case 5:
                 string permitirVendaSemEstoque = MenuTool_Input("Permitir vendas sem estoque? (s/n) ", false);
@@ -177,7 +198,7 @@ public class Program
 
         if(produtos.Count == 0)
         {
-            Erro("Nenhum produto cadastrado!");
+            Alert("Nenhum produto cadastrado!");
             return;
         }
 
@@ -194,8 +215,7 @@ public class Program
         Console.Clear();
         if(produtos.Count == 0)
         {
-            Console.WriteLine("Nenhum produto cadastrado!\n\nPressione qualquer tecla para voltar...");
-            Console.ReadKey();
+            Alert("Nenhum produto cadastrado!");
             return;
         }
         Console.WriteLine("Produtos:");
@@ -228,70 +248,240 @@ public class Program
                 else Console.WriteLine($"|#{produto.codigo} - {produto.nome}");
             }
         }
-        Console.WriteLine("Pressione qualquer tecla para voltar...");
-        Console.ReadKey();
+        Console.WriteLine();
+        PressioneQualquerTecla();
     }
 
     public static void MenuEstoque()
     {
-        while(true)
+        List<string> opcoes = new List<string> { "Adicionar", "Reduzir", "Listar", "Voltar" };
+        int indice = MenuTool_Navegar("Estoque:", opcoes);
+        
+        switch(indice)
         {
-            Console.Clear();
-            Console.WriteLine("Estoque:");
-            Console.WriteLine("1 - Adicionar\n2 - Remover\n3 - Listar\n4 - Voltar\nEscolha uma opção: ");
-            switch(Console.ReadLine())
-            {
-                case "1":
-                    MenuAdicionarEstoque();
-                    break;
-                case "2":
-                    //RemoverEstoque();
-                    break;
-                case "3":
-                    //ListarEstoque();
-                    break;
-                case "4":
-                    return;
-                default:
-                   break;
-            }
+            case 0:
+                MenuAdicionarEstoque();
+                break;
+            case 1:
+                MenuReduzirEstoque();
+                break;
+            case 2:
+                MenuListarEstoque();
+                break;
+            case -1:
+            case 3:
+                return;
         }
+        MenuEstoque();
     }
 
     public static void MenuAdicionarEstoque()
     {
+        Console.Clear();
         if(produtos.Count == 0)
         {
-            Console.Clear();
-            Erro("Nenhum produto cadastrado!");
+            Alert("Nenhum produto cadastrado!");
             return;
         }
 
         Produto? produto = MenuTool_NavegarProduto("Adicionar ao estoque:", true, false);
         if(produto == null) return;
 
-        Console.WriteLine($"Produto: {produto.nome}");
-        Console.Write("Quantidade a ser adicionada: ");
-        string? quantidade = Console.ReadLine();
-        if(quantidade == null || quantidade == "") return;
-
+        Console.WriteLine($"Produto: {produto.nome}\n");
+        string quantidade = MenuTool_Input("Quantidade a ser adicionada: ", true);
         int quantidadeInt = MenuTool_TentarConverterParaInteiro(quantidade);
-        if(quantidadeInt == 0)
-        {
-            Erro("Valor inválido!");
-            return;
-        }
-        if(quantidadeInt < 0)
-        {
-            Erro("Valor não pode ser negativo!");
-            return;
-        }
+        Console.WriteLine();
+
+        if(IntVerificadorPositiva(quantidadeInt) == false) return;
 
         produto.quantidadeEstoque += quantidadeInt;
-        Console.WriteLine("Estoque atualizado com sucesso!\n\nPressione qualquer tecla para voltar...");
-        Console.ReadKey();
+        Alert("Estoque atualizado com sucesso!");
     }
 
+    public static void MenuReduzirEstoque()
+    {
+        Console.Clear();
+        if(produtos.Count == 0)
+        {
+            Alert("Nenhum produto cadastrado!");
+            return;
+        }
+
+        Produto? produto = MenuTool_NavegarProduto("Reduzir do estoque:", true, false);
+        if(produto == null) return;
+
+        Console.WriteLine($"Produto: {produto.nome}\n");
+        string quantidade = MenuTool_Input("Quantidade a ser reduzida: ", true);
+        int quantidadeInt = MenuTool_TentarConverterParaInteiro(quantidade);
+        Console.WriteLine();
+
+        if(IntVerificadorPositiva(quantidadeInt) == false) return;
+        if(quantidadeInt > produto.quantidadeEstoque)
+        {
+            Alert("Quantidade maior que o estoque!");
+            return;
+        }
+
+        produto.quantidadeEstoque -= quantidadeInt;
+        Alert("Estoque atualizado com sucesso!");
+    }
+
+    public static void MenuListarEstoque()
+    {
+        Console.Clear();
+        if(produtos.Count == 0)
+        {
+            Alert("Nenhum produto cadastrado!");
+            return;
+        }
+        Console.WriteLine("Estoque:");
+        foreach(Produto produto in produtos)
+        {
+            Console.WriteLine($"#{produto.codigo} - {produto.nome} ({produto.quantidadeEstoque})");
+        }
+        Console.WriteLine();
+        PressioneQualquerTecla();
+    }
+
+    public static void MenuClientes()
+    {
+        List<string> opcoes = new List<string> { "Cadastrar", "Editar", "Excluir", "Listar", "Voltar" };
+        int indice = MenuTool_Navegar("Clientes:", opcoes);
+
+        switch(indice)
+        {
+            case 0:
+                MenuCadastrarCliente();
+                break;
+            case 1:
+                MenuEditarCliente();
+                break;
+            case 2:
+                MenuExcluirCliente();
+                break;
+            case 3:
+                MenuListarClientes();
+                break;
+            case -1:
+            case 4:
+                return;
+        }
+        MenuClientes();
+    }
+
+    public static void MenuCadastrarCliente()
+    {
+        Console.Clear();
+        Console.WriteLine("Cadastrar Cliente:");
+        string nome, cpf, endereco, telefone, email;
+        
+        nome = MenuTool_Input("Nome: ", true);
+        cpf = MenuTool_Input("CPF: ", false);
+        endereco = MenuTool_Input("Endereço: ", false);
+        telefone = MenuTool_Input("Telefone: ", false);
+        email = MenuTool_Input("E-mail: ", false);
+
+        quantidadeClientes++;
+        Cliente cliente = new Cliente(quantidadeClientes, nome, cpf, endereco, telefone, email);
+        clientes.Add(cliente);
+        
+        Alert("Cliente cadastrado com sucesso!");
+    }
+
+    public static void MenuEditarCliente()
+    {
+        Console.Clear();
+        if(clientes.Count == 0)
+        {
+            Alert("Nenhum cliente cadastrado!");
+            return;
+        }
+
+        Cliente? cliente = MenuTool_NavegarCliente("Editar cliente:");
+        if(cliente == null) return;
+
+        List<string> opcoes = new List<string> { $"Nome: {cliente.nome}", $"CPF: {cliente.cpf}", $"Endereço: {cliente.endereco}", $"Telefone: {cliente.telefone}", $"E-mail: {cliente.email}", "Voltar" };
+        int indice = MenuTool_Navegar("Editar cliente:", opcoes);
+
+        switch(indice)
+        {
+            case 0:
+                string novoNome = MenuTool_Input("Novo nome: ", true);
+                if(novoNome.Length != 0) cliente.nome = novoNome;
+                break;
+            case 1:
+                string novoCPF = MenuTool_Input("Novo CPF: ", true);
+                if(novoCPF.Length != 0) cliente.cpf = novoCPF;
+                break;
+            case 2:
+                cliente.endereco = MenuTool_Input("Novo endereço: ", false);
+                break;
+            case 3:
+                cliente.telefone = MenuTool_Input("Novo telefone: ", false);
+                break;
+            case 4:
+                cliente.email = MenuTool_Input("Novo e-mail: ", false);
+                break;
+            case -1:
+            case 5:
+                return;
+            default:
+                break;
+        }
+        MenuEditarCliente();
+    }
+
+    public static void MenuExcluirCliente()
+    {
+        Console.Clear();
+
+        if(clientes.Count == 0)
+        {
+            Alert("Nenhum cliente cadastrado!");
+            return;
+        }
+
+        Cliente? cliente = MenuTool_NavegarCliente("Excluir cliente:");
+        if(cliente == null) return;
+
+        bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este cliente ({cliente.nome})?");
+        if(!resposta) return;
+        clientes.Remove(cliente);
+    }
+
+    public static void MenuListarClientes()
+    {
+        Console.Clear();
+        if(clientes.Count == 0)
+        {
+            Alert("Nenhum cliente cadastrado!");
+            return;
+        }
+        Console.WriteLine("Clientes:");
+        foreach(Cliente cliente in clientes)
+        {
+            Console.WriteLine($"#{cliente.codigo} - {cliente.nome}");
+        }
+        Console.WriteLine();
+        PressioneQualquerTecla();
+    }
+
+
+
+    public static bool IntVerificadorPositiva(int valor)
+    {
+        if(valor > 0) return true;
+        else if(valor == 0)
+        {
+            Alert("Valor inválido! ");
+            return false;
+        }
+        else
+        {
+            Alert("Valor não pode ser negativo! ");
+            return false;
+        }
+    }
     public static string MenuTool_Input(string mensagem, bool obrigatorio = true)
     {
         if(obrigatorio) Console.Write("*");
@@ -303,19 +493,16 @@ public class Program
             else return $"{input}";
         }
     }
-
-    public static void Erro(string mensagem)
+    public static void Alert(string mensagem)
     {
         Console.WriteLine($"{mensagem}");
         PressioneQualquerTecla();
     }
-
     public static void PressioneQualquerTecla()
     {
         Console.WriteLine("Pressione qualquer tecla para voltar...");
         Console.ReadKey();
     }
-
     public static int MenuTool_Navegar(string titulo, List<string> opcoes)
     {
         int indice = 0;
@@ -350,7 +537,6 @@ public class Program
             }
         }
     }
-
     public static Produto? MenuTool_NavegarProduto(string titulo, bool exibirEstoque, bool exibirPreco)
     {
         int indice = 0;
@@ -390,7 +576,42 @@ public class Program
             }
         }
     }
-
+    public static Cliente? MenuTool_NavegarCliente(string titulo)
+    {
+        int indice = 0;
+        while(true)
+        {
+            Console.Clear();
+            if(titulo != "") Console.WriteLine(titulo);
+            Console.WriteLine("Escolha um cliente utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            for(int i = 0; i < clientes.Count; i++)
+            {
+                if(i == indice) Console.Write(">");
+                else Console.Write(" ");
+                Console.WriteLine("#"+clientes[i].codigo+" - "+clientes[i].nome);
+            }
+            Console.WriteLine();
+            switch(Console.ReadKey().Key)
+            {
+                case ConsoleKey.UpArrow:
+                    if(indice > 0) indice--;
+                    else indice = clientes.Count-1;
+                    break;
+                case ConsoleKey.DownArrow:
+                    if(indice < clientes.Count-1) indice++;
+                    else indice = 0;
+                    break;
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.Backspace:
+                    return null;
+                case ConsoleKey.Enter:
+                    Console.Clear();
+                    return clientes[indice];
+                default:
+                    break;
+            }
+        }
+    }
     public static bool MenuTool_Confirmar(string message)
     {
         bool confirm = true;
@@ -417,6 +638,4 @@ public class Program
     }
     public static int MenuTool_TentarConverterParaInteiro(string valor) { try { return int.Parse(valor); } catch { return 0; } }
     public static double MenuTool_TentarConverterParaDouble(string valor) { try { return double.Parse(valor); } catch { return 0; } }
-
-
 }

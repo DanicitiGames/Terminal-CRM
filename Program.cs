@@ -11,18 +11,22 @@ public class Dados
     public List<Produto> produtos { get; set; }
     public List<Cliente> clientes { get; set; }
     public List<Fornecedor> fornecedores { get; set; }
+    public List<Historico> historicos { get; set; }
     public int quantidadeProdutos { get; set; }
     public int quantidadeClientes { get; set; }
     public int quantidadeFornecedores { get; set; }
+    public int quantidadeHistorico { get; set; }
 
-    public Dados(List<Produto> produtos, List<Cliente> clientes, List<Fornecedor> fornecedores, int quantidadeProdutos, int quantidadeClientes, int quantidadeFornecedores)
+    public Dados(List<Produto> produtos, List<Cliente> clientes, List<Fornecedor> fornecedores, List<Historico> historicos, int quantidadeProdutos, int quantidadeClientes, int quantidadeFornecedores, int quantidadeHistorico)
     {
         this.produtos = produtos;
         this.clientes = clientes;
         this.fornecedores = fornecedores;
+        this.historicos = historicos;
         this.quantidadeProdutos = quantidadeProdutos;
         this.quantidadeClientes = quantidadeClientes;
         this.quantidadeFornecedores = quantidadeFornecedores;
+        this.quantidadeHistorico = quantidadeHistorico;
     }
 }
 
@@ -89,6 +93,20 @@ public class Fornecedor
     }
 }
 
+public class Historico
+{
+    public int codigo { get; private set; }
+    public string data { get; set; }
+    public string descricao { get; set; }
+
+    public Historico(int codigo, string data, string descricao)
+    {
+        this.codigo = codigo;
+        this.data = data;
+        this.descricao = descricao;
+    }
+}
+
 public class Program
 {
     private static string caminhoSalvamento = "dados.json";
@@ -96,9 +114,11 @@ public class Program
     private static int quantidadeProdutos = 0;
     private static int quantidadeClientes = 0;
     private static int quantidadeFornecedores = 0;
+    private static int quantidadeHistorico = 0;
     private static List<Produto> produtos = new List<Produto>();
     private static List<Cliente> clientes = new List<Cliente>();
     private static List<Fornecedor> fornecedores = new List<Fornecedor>();
+    private static List<Historico> historicos = new List<Historico>();
 
 	public static void Main()
 	{
@@ -135,7 +155,7 @@ public class Program
                 //Relatorios();
                 break;
             case 7:
-                //MenuHistorico();
+                MenuHistorico();
                 break;
             case 8:
                 MenuConfiguracoes();
@@ -190,7 +210,9 @@ public class Program
         quantidadeProdutos++;
         Produto produto = new Produto(quantidadeProdutos, nome, descricao, MenuTool_TentarConverterParaDouble(preco), categoria, MenuTool_TentarConverterParaInteiro(quantidadeEstoque), permitirVendaSemEstoque.ToLower() == "s");
         produtos.Add(produto);
-        
+
+        AdicionarHistorico($"Produto cadastrado: {produto.nome}");
+
         SalvarDados();
         Alert("Produto cadastrado com sucesso!");
     }
@@ -214,33 +236,42 @@ public class Program
         {
             case 0:
                 string novoNome = MenuTool_Input("Novo nome: ", true);
-                if(novoNome.Length != 0) produto.nome = novoNome;
+                if(novoNome.Length == 0) break;
+                produto.nome = novoNome;
+                AdicionarHistorico($"Produto editado: {produto.nome}");
                 SalvarDados();
                 break;
             case 1:
                 produto.descricao = MenuTool_Input("Nova descrição: ", false);
+                AdicionarHistorico($"Produto editado: {produto.nome}");
                 SalvarDados();
                 break;
             case 2:
                 string novoPreco = MenuTool_Input("Novo preço: ", false).Replace(".", ",");
                 double novoPrecoDouble = MenuTool_TentarConverterParaDouble(novoPreco);
-                if(novoPrecoDouble > 0) produto.preco = novoPrecoDouble;
+                if(novoPrecoDouble <= 0) break; 
+                produto.preco = novoPrecoDouble;
+                AdicionarHistorico($"Produto editado: {produto.nome}");
                 SalvarDados();
                 break;
             case 3:
                 produto.categoria = MenuTool_Input("Nova categoria: ", false);
                 if(produto.categoria == "") produto.categoria = "Sem categoria";
+                AdicionarHistorico($"Produto editado: {produto.nome}");
                 SalvarDados();
                 break;
             case 4:
                 string novaQuantidadeEstoque = MenuTool_Input("Nova quantidade em estoque: ", false);
                 int novaQuantidadeEstoqueInt = MenuTool_TentarConverterParaInteiro(novaQuantidadeEstoque);
-                if(novaQuantidadeEstoqueInt > 0) produto.quantidadeEstoque = novaQuantidadeEstoqueInt;
+                if(novaQuantidadeEstoqueInt <= 0)  break;
+                produto.quantidadeEstoque = novaQuantidadeEstoqueInt;
+                AdicionarHistorico($"Produto editado: {produto.nome}");
                 SalvarDados();
                 break;
             case 5:
                 string permitirVendaSemEstoque = MenuTool_Input("Permitir vendas sem estoque? (s/n) ", false);
                 produto.permitirVendaSemEstoque = permitirVendaSemEstoque.ToLower() == "s";
+                AdicionarHistorico($"Produto editado: {produto.nome}");
                 SalvarDados();
                 break;
             case -1:
@@ -268,6 +299,7 @@ public class Program
         bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este produto ({produto.nome})?");
         if(!resposta) return;
         produtos.Remove(produto);
+        AdicionarHistorico($"Produto excluído: {produto.nome}");
         SalvarDados();
     }
     
@@ -356,6 +388,7 @@ public class Program
         if(IntVerificadorPositiva(quantidadeInt) == false) return;
 
         produto.quantidadeEstoque += quantidadeInt;
+        AdicionarHistorico($"Adicionado ao estoque: {produto.nome} ({quantidadeInt})");
         SalvarDados();
         Alert("Estoque atualizado com sucesso!");
     }
@@ -385,6 +418,7 @@ public class Program
         }
 
         produto.quantidadeEstoque -= quantidadeInt;
+        AdicionarHistorico($"Reduzido do estoque: {produto.nome} ({quantidadeInt})");
         SalvarDados();
         Alert("Estoque atualizado com sucesso!");
     }
@@ -447,7 +481,8 @@ public class Program
         quantidadeClientes++;
         Cliente cliente = new Cliente(quantidadeClientes, nome, cpf, endereco, telefone, email);
         clientes.Add(cliente);
-        
+
+        AdicionarHistorico($"Cliente cadastrado: {cliente.nome}");
         SalvarDados();
         Alert("Cliente cadastrado com sucesso!");
     }
@@ -471,24 +506,31 @@ public class Program
         {
             case 0:
                 string novoNome = MenuTool_Input("Novo nome: ", true);
-                if(novoNome.Length != 0) cliente.nome = novoNome;
+                if(novoNome.Length == 0) break;
+                cliente.nome = novoNome;
+                AdicionarHistorico($"Cliente editado: {cliente.nome}");
                 SalvarDados();
                 break;
             case 1:
                 string novoCPF = MenuTool_Input("Novo CPF: ", true);
-                if(novoCPF.Length != 0) cliente.cpf = novoCPF;
+                if(novoCPF.Length == 0) break;
+                cliente.cpf = novoCPF;
+                AdicionarHistorico($"Cliente editado: {cliente.nome}");
                 SalvarDados();
                 break;
             case 2:
                 cliente.endereco = MenuTool_Input("Novo endereço: ", false);
+                AdicionarHistorico($"Cliente editado: {cliente.nome}");
                 SalvarDados();
                 break;
             case 3:
                 cliente.telefone = MenuTool_Input("Novo telefone: ", false);
+                AdicionarHistorico($"Cliente editado: {cliente.nome}");
                 SalvarDados();
                 break;
             case 4:
                 cliente.email = MenuTool_Input("Novo e-mail: ", false);
+                AdicionarHistorico($"Cliente editado: {cliente.nome}");
                 SalvarDados();
                 break;
             case -1:
@@ -516,6 +558,7 @@ public class Program
         bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este cliente ({cliente.nome})?");
         if(!resposta) return;
         clientes.Remove(cliente);
+        AdicionarHistorico($"Cliente excluído: {cliente.nome}");
         SalvarDados();
     }
 
@@ -581,6 +624,7 @@ public class Program
         Fornecedor fornecedor = new Fornecedor(quantidadeFornecedores, nome, cnpj, endereco, telefone, email);
         fornecedores.Add(fornecedor);
         
+        AdicionarHistorico($"Fornecedor cadastrado: {fornecedor.nome}");
         SalvarDados();
         Alert("Fornecedor cadastrado com sucesso!");
     }
@@ -604,24 +648,31 @@ public class Program
         {
             case 0:
                 string novoNome = MenuTool_Input("Novo nome: ", true);
-                if(novoNome.Length != 0) fornecedor.nome = novoNome;
+                if(novoNome.Length == 0) break;
+                fornecedor.nome = novoNome;
+                AdicionarHistorico($"Fornecedor editado: {fornecedor.nome}");
                 SalvarDados();
                 break;
             case 1:
                 string novoCNPJ = MenuTool_Input("Novo CNPJ: ", true);
-                if(novoCNPJ.Length != 0) fornecedor.cnpj = novoCNPJ;
+                if(novoCNPJ.Length == 0) break;
+                fornecedor.cnpj = novoCNPJ;
+                AdicionarHistorico($"Fornecedor editado: {fornecedor.nome}");
                 SalvarDados();
                 break;
             case 2:
                 fornecedor.endereco = MenuTool_Input("Novo endereço: ", false);
+                AdicionarHistorico($"Fornecedor editado: {fornecedor.nome}");
                 SalvarDados();
                 break;
             case 3:
                 fornecedor.telefone = MenuTool_Input("Novo telefone: ", false);
+                AdicionarHistorico($"Fornecedor editado: {fornecedor.nome}");
                 SalvarDados();
                 break;
             case 4:
                 fornecedor.email = MenuTool_Input("Novo e-mail: ", false);
+                AdicionarHistorico($"Fornecedor editado: {fornecedor.nome}");
                 SalvarDados();
                 break;
             case -1:
@@ -653,6 +704,7 @@ public class Program
         if(fornecedor == null) return;
 
         produto.codigoFornecedor = fornecedor.codigo;
+        AdicionarHistorico($"Produto definido para fornecedor: {produto.nome} ({fornecedor.nome})");
         SalvarDados();
         Alert("Fornecedor definido com sucesso!");
     }
@@ -673,6 +725,7 @@ public class Program
         bool resposta = MenuTool_Confirmar($"Deseja realmente excluir este fornecedor ({fornecedor.nome})?");
         if(!resposta) return;
         fornecedores.Remove(fornecedor);
+        AdicionarHistorico($"Fornecedor excluído: {fornecedor.nome}");
         SalvarDados();
     }
 
@@ -693,24 +746,47 @@ public class Program
         PressioneQualquerTecla();
     }
 
+    public static void MenuHistorico()
+    {
+        Console.Clear();
+        if(historicos.Count == 0)
+        {
+            Alert("Nenhum histórico!");
+            return;
+        }
+        Console.WriteLine("Histórico:\n");
+        foreach(Historico historico in historicos)
+        {
+            Console.WriteLine($"#{historico.codigo} - {historico.data} - {historico.descricao}");
+        }
+        Console.WriteLine();
+        PressioneQualquerTecla();
+    }
+
     public static void MenuConfiguracoes()
     {
-        List<string> opcoes = new List<string> { "Formatar dados", "Caminho de salvamento", "Voltar" };
+        List<string> opcoes = new List<string> { "Formatar dados", "Voltar" };
         int indice = MenuTool_Navegar("Configurações:", opcoes);
 
         switch(indice)
         {
             case 0:
-                //FormatarDados();
-                break;
-            case 1:
-                //CaminhoSalvamento();
+                MenuFormatarDados();
                 break;
             case -1:
-            case 2:
+            case 1:
                 return;
         }
         MenuConfiguracoes();
+    }
+
+    public static void MenuFormatarDados()
+    {
+        bool resposta = MenuTool_Confirmar("Deseja realmente formatar os dados?");
+        if(!resposta) return;
+
+        FormatarDados();
+        Alert("Dados formatados com sucesso!");
     }
 
     public static bool IntVerificadorPositiva(int valor)
@@ -956,10 +1032,29 @@ public class Program
     }
     public static int MenuTool_TentarConverterParaInteiro(string valor) { try { return int.Parse(valor); } catch { return 0; } }
     public static double MenuTool_TentarConverterParaDouble(string valor) { try { return double.Parse(valor); } catch { return 0; } }
+    public static string HorarioAtual() => DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
 
+    public static void AdicionarHistorico(string descricao)
+    {
+        quantidadeHistorico++;
+        Historico historico = new Historico(quantidadeHistorico, HorarioAtual(), descricao);
+        historicos.Add(historico);
+    }
+
+    public static void FormatarDados()
+    {
+        produtos.Clear();
+        clientes.Clear();
+        fornecedores.Clear();
+        quantidadeProdutos = 0;
+        quantidadeClientes = 0;
+        quantidadeFornecedores = 0;
+        SalvarDados();
+    }
+    
     public static void SalvarDados()
     {
-        Dados dados = new Dados(produtos, clientes, fornecedores, quantidadeProdutos, quantidadeClientes, quantidadeFornecedores);
+        Dados dados = new Dados(produtos, clientes, fornecedores, historicos, quantidadeProdutos, quantidadeClientes, quantidadeFornecedores, quantidadeHistorico);
         string json = JsonSerializer.Serialize(dados);
         File.WriteAllText(caminhoSalvamento, json);
     }
@@ -982,9 +1077,11 @@ public class Program
                 produtos = dados.produtos;
                 clientes = dados.clientes;
                 fornecedores = dados.fornecedores;
+                historicos = dados.historicos;
                 quantidadeProdutos = dados.quantidadeProdutos;
                 quantidadeClientes = dados.quantidadeClientes;
                 quantidadeFornecedores = dados.quantidadeFornecedores;
+                quantidadeHistorico = dados.quantidadeHistorico;
             }
         }
     }

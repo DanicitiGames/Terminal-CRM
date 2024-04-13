@@ -9,21 +9,25 @@ using System.Text.Json.Nodes;
 public class Dados
 {
     public List<Produto> produtos { get; set; }
+    public List<Venda> vendas {get; set; }
     public List<Cliente> clientes { get; set; }
     public List<Fornecedor> fornecedores { get; set; }
     public List<Historico> historicos { get; set; }
     public int quantidadeProdutos { get; set; }
+    public int quantidadeVendas { get; set; }
     public int quantidadeClientes { get; set; }
     public int quantidadeFornecedores { get; set; }
     public int quantidadeHistorico { get; set; }
 
-    public Dados(List<Produto> produtos, List<Cliente> clientes, List<Fornecedor> fornecedores, List<Historico> historicos, int quantidadeProdutos, int quantidadeClientes, int quantidadeFornecedores, int quantidadeHistorico)
+    public Dados(List<Produto> produtos, List<Venda> vendas, List<Cliente> clientes, List<Fornecedor> fornecedores, List<Historico> historicos, int quantidadeProdutos, int quantidadeVendas, int quantidadeClientes, int quantidadeFornecedores, int quantidadeHistorico)
     {
         this.produtos = produtos;
+        this.vendas = vendas;
         this.clientes = clientes;
         this.fornecedores = fornecedores;
         this.historicos = historicos;
         this.quantidadeProdutos = quantidadeProdutos;
+        this.quantidadeVendas = quantidadeVendas;
         this.quantidadeClientes = quantidadeClientes;
         this.quantidadeFornecedores = quantidadeFornecedores;
         this.quantidadeHistorico = quantidadeHistorico;
@@ -50,6 +54,50 @@ public class Produto
         this.categoria = categoria;
         this.quantidadeEstoque = quantidadeEstoque;
         this.permitirVendaSemEstoque = permitirVendaSemEstoque;
+    }
+}
+
+public class Venda
+{
+    public int codigo { get; private set; }
+    public int codigoProduto { get; set; }
+    public int codigoCliente { get; set; }
+    public string data { get; set; }
+    public int quantidade { get; set; }
+    public double valorTotal { get; set; }
+    public int situacao { get; set; }
+
+    public Venda(int codigo, int codigoProduto, int codigoCliente, string data, int quantidade, double valorTotal, int situacao)
+    {
+        this.codigo = codigo;
+        this.codigoProduto = codigoProduto;
+        this.codigoCliente = codigoCliente;
+        this.data = data;
+        this.quantidade = quantidade;
+        this.valorTotal = valorTotal;
+        this.situacao = situacao;
+    }
+}
+
+public class Compra
+{
+    public int codigo { get; private set; }
+    public int codigoProduto { get; set; }
+    public int codigoFornecedor { get; set; }
+    public string data { get; set; }
+    public int quantidade { get; set; }
+    public double valorTotal { get; set; }
+    public int situacao { get; set; }
+
+    public Compra(int codigo, int codigoProduto, int codigoFornecedor, string data, int quantidade, double valorTotal, int situacao)
+    {
+        this.codigo = codigo;
+        this.codigoProduto = codigoProduto;
+        this.codigoFornecedor = codigoFornecedor;
+        this.data = data;
+        this.quantidade = quantidade;
+        this.valorTotal = valorTotal;
+        this.situacao = situacao;
     }
 }
 
@@ -111,11 +159,10 @@ public class Program
 {
     private static string caminhoSalvamento = "dados.json";
 
-    private static int quantidadeProdutos = 0;
-    private static int quantidadeClientes = 0;
-    private static int quantidadeFornecedores = 0;
-    private static int quantidadeHistorico = 0;
+    private static int quantidadeProdutos, quantidadeVendas, quantidadeCompras, quantidadeClientes, quantidadeFornecedores, quantidadeHistorico = 0;
     private static List<Produto> produtos = new List<Produto>();
+    private static List<Venda> vendas = new List<Venda>();
+    private static List<Compra> compras = new List<Compra>();
     private static List<Cliente> clientes = new List<Cliente>();
     private static List<Fornecedor> fornecedores = new List<Fornecedor>();
     private static List<Historico> historicos = new List<Historico>();
@@ -140,10 +187,10 @@ public class Program
                 MenuEstoque();
                 break;
             case 2:
-                //Vendas();
+                MenuVendas();
                 break;
             case 3:
-                //Compras();
+                MenuCompras();
                 break;
             case 4:
                 MenuClientes();
@@ -152,7 +199,7 @@ public class Program
                 MenuFornecedores();
                 break;
             case 6:
-                //Relatorios();
+                MenuRelatorios();
                 break;
             case 7:
                 MenuHistorico();
@@ -439,6 +486,192 @@ public class Program
         Console.WriteLine();
         PressioneQualquerTecla();
     }
+
+    public static void MenuVendas()
+    {
+        if(produtos.Count == 0)
+        {
+            Alert("Você precisa ter pelo menos um produto cadastrado!");
+            return;
+        }
+        if(clientes.Count == 0)
+        {
+            Alert("Você precisa ter pelo menos um cliente cadastrado!");
+            return;
+        }
+
+        List<string> opcoes = new List<string> { "Registrar venda", "Listar", "Voltar" };
+        int indice = MenuTool_Navegar("Vendas:", opcoes);
+
+        switch(indice)
+        {
+            case 0:
+                MenuRegistrarVenda();
+                break;
+            case 1:
+                MenuListarVendas();
+                break;
+            case -1:
+            case 2:
+                return;
+        }
+        MenuVendas();
+    }
+
+    public static void MenuRegistrarVenda()
+    {
+        Console.Clear();
+        Console.WriteLine("Registrar Venda:");
+        Produto? produto = MenuTool_NavegarProduto("Escolha um produto:", true, true);
+        if(produto == null) return;
+
+        if(produto.quantidadeEstoque == 0 && !produto.permitirVendaSemEstoque)
+        {
+            Alert("Produto sem estoque! Venda cancelada!");
+            return;
+        }
+
+        Cliente? cliente = MenuTool_NavegarCliente("Escolha um cliente:");
+        if(cliente == null) return;
+
+        Console.WriteLine($"Produto: {produto.nome}\nCliente: {cliente.nome}\n");
+        string quantidade = MenuTool_Input("Quantidade: ", true);
+        int quantidadeInt = MenuTool_TentarConverterParaInteiro(quantidade);
+        Console.WriteLine();
+
+        if(IntVerificadorPositiva(quantidadeInt) == false) return;
+        if(quantidadeInt > produto.quantidadeEstoque && !produto.permitirVendaSemEstoque)
+        {
+            Alert("Quantidade maior que o estoque! Venda cancelada!");
+            return;
+        }
+        if(quantidadeInt < 1)
+        {
+            Alert("Quantidade inválida! Venda cancelada!");
+            return;
+        }
+
+        double valorTotal = quantidadeInt * produto.preco;
+        List<string> opcoes = new List<string> { "Sim", "Não" };
+        int indice = MenuTool_Navegar($"Valor total: R${valorTotal}\nDeseja alterar o valor?", opcoes);
+
+        if(indice == 0)
+        {
+            string novoValor = MenuTool_Input("Novo valor: ", true).Replace(".", ",");
+            double novoValorDouble = MenuTool_TentarConverterParaDouble(novoValor);
+            if(novoValorDouble <= 0)
+            {
+                Alert("Valor inválido! Venda cancelada!");
+                return;
+            }
+            valorTotal = novoValorDouble;
+        }
+
+        produto.quantidadeEstoque -= quantidadeInt;
+        quantidadeHistorico++;
+        quantidadeVendas++;
+        Venda venda = new Vendas(quantidadeVendas, produto.codigo, cliente.codigo, DateTime.Now.ToString("dd/MM/yyyy"), quantidadeInt, valorTotal, 1);
+        vendas.Add(venda);
+        AdicionarHistorico($"Venda registrada: {produto.nome} ({quantidadeInt}) - {cliente.nome}");
+        SalvarDados();
+        Alert("Venda registrada com sucesso!");
+    }
+
+    public static void MenuListarVendas()
+    {
+        Console.Clear();
+        if(vendas.Count == 0)
+        {
+            Alert("Nenhuma venda registrada!");
+            return;
+        }
+        Venda? venda = MenuTool_NavegarVenda("Vendas:");
+        if(venda == null) return;
+
+        Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
+        Cliente cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
+
+        Console.WriteLine($"Venda #{venda.codigo}\nProduto: {produto.nome} ({venda.quantidade})\nCliente: {cliente.nome}\nData: {venda.data}\nValor total: R${venda.valorTotal}\n");
+        List<string> opcoes = new List<string> { "Cancelar", "Voltar" };
+        int indice = MenuTool_Navegar("Venda:", opcoes);
+        if(indice == 1) return;
+        venda.situacao = 0;
+    }
+
+    public static void MenuCompras()
+    {
+        if(produtos.Count == 0)
+        {
+            Alert("Você precisa ter pelo menos um produto cadastrado!");
+            return;
+        }
+        if(fornecedores.Count == 0)
+        {
+            Alert("Você precisa ter pelo menos um fornecedor cadastrado!");
+            return;
+        }
+
+        List<string> opcoes = new List<string> { "Registrar compra", "Listar", "Voltar" };
+        int indice = MenuTool_Navegar("Compras:", opcoes);
+
+        switch(indice)
+        {
+            case 0:
+                MenuRegistrarCompra();
+                break;
+            case 1:
+                MenuListarCompras();
+                break;
+            case -1:
+            case 2:
+                return;
+        }
+        MenuCompras();
+    }
+
+    public static void MenuRegistrarCompra()
+    [
+        Console.Clear();
+        Console.WriteLine("Registrar Compra:");
+        Produto? produto = MenuTool_NavegarProduto("Escolha um produto:", true, true);
+        if(produto == null) return;
+
+        Fornecedor? fornecedor = MenuTool_NavegarFornecedor("Escolha um fornecedor:");
+        if(fornecedor == null) return;
+
+        Console.WriteLine($"Produto: {produto.nome}\nFornecedor: {fornecedor.nome}\n");
+        string quantidade = MenuTool_Input("Quantidade: ", true);
+        int quantidadeInt = MenuTool_TentarConverterParaInteiro(quantidade);
+        Console.WriteLine();
+
+        if(IntVerificadorPositiva(quantidadeInt) == false) return;
+        if(quantidadeInt < 1)
+        {
+            Alert("Quantidade inválida! Compra cancelada!");
+            return;
+        }
+
+        double valorTotal = quantidadeInt * produto.preco;
+        List<string> opcoes = new List<string> { "Sim", "Não" };
+        int indice = MenuTool_Navegar($"Valor total: R${valorTotal}\nDeseja alterar o valor?", opcoes);
+
+        if(indice == 0)
+        {
+            string novoValor = MenuTool_Input("Novo valor: ", true).Replace(".", ",");
+            double novoValorDouble = MenuTool_TentarConverterParaDouble(novoValor);
+            if(novoValorDouble <= 0)
+            {
+                Alert("Valor inválido! Compra cancelada!");
+                return;
+            }
+            valorTotal = novoValorDouble;
+        }
+
+
+        AdicionarHistorico($"Compra registrada: {produto.nome} ({quantidadeInt}) - {fornecedor.nome}");
+        SalvarDados();
+        Alert("Compra registrada com sucesso!");
+    ]
 
     public static void MenuClientes()
     {
@@ -746,6 +979,54 @@ public class Program
         PressioneQualquerTecla();
     }
 
+    public static void MenuRelatorios()
+    {
+        Console.Clear();
+        List<string> opcoes = new List<string> { "Gerar relatório cliente", "Voltar" };
+        int indice = MenuTool_Navegar("Relatórios:", opcoes);
+        
+        switch(indice)
+        {
+            case 0:
+                MenuRelatorioCliente();
+                break;
+            case -1:
+            case 1:
+                return;
+        }
+        MenuRelatorios();
+    }
+
+    public static void MenuRelatorioCliente()
+    {
+        Console.Clear();
+        if(clientes.Count == 0)
+        {
+            Alert("Nenhum cliente cadastrado!");
+            return;
+        }
+        Cliente? cliente = MenuTool_NavegarCliente("Escolha um cliente para o relatório:");
+        if(cliente == null) return;
+
+        List<Venda> vendasCliente = vendas.FindAll(v => v.codigoCliente == cliente.codigo);
+        if(vendasCliente.Count == 0)
+        {
+            Alert("Nenhuma venda registrada para este cliente!");
+            return;
+        }
+
+        Console.WriteLine($"Relatório do cliente: {cliente.nome}\n");
+        double valorTotal = 0;
+        foreach(Venda venda in vendasCliente)
+        {
+            Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
+            Console.WriteLine($"#{venda.codigo} - {produto.nome} ({venda.quantidade}) - R${venda.valorTotal}");
+            valorTotal += venda.valorTotal;
+        }
+        Console.WriteLine($"\nValor total: R${valorTotal}\n");
+        PressioneQualquerTecla();
+    }
+
     public static void MenuHistorico()
     {
         Console.Clear();
@@ -934,6 +1215,44 @@ public class Program
             }
         }
     }
+    public static Venda? MenuTool_NavegarVenda(string titulo)
+    {
+        int indice = 0;
+        while(true)
+        {
+            Console.Clear();
+            if(titulo != "") Console.WriteLine(titulo);
+            Console.WriteLine("Escolha utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            for(int i = 0; i < vendas.Count; i++)
+            {
+                if(i == indice) Console.Write(">");
+                else Console.Write(" ");
+                Produto produto = produtos.Find(p => p.codigo == vendas[i].codigoProduto);
+                Cliente cliente = clientes.Find(c => c.codigo == vendas[i].codigoCliente);
+                Console.WriteLine($"{vendas[i].data} #{vendas[i].codigo} - {produto.nome} ({vendas[i].quantidade}) - {cliente.nome}");
+            }
+            Console.WriteLine();
+            switch(Console.ReadKey().Key)
+            {
+                case ConsoleKey.UpArrow:
+                    if(indice > 0) indice--;
+                    else indice = vendas.Count-1;
+                    break;
+                case ConsoleKey.DownArrow:
+                    if(indice < vendas.Count-1) indice++;
+                    else indice = 0;
+                    break;
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.Backspace:
+                    return null;
+                case ConsoleKey.Enter:
+                    Console.Clear();
+                    return vendas[indice];
+                default:
+                    break;
+            }
+        }
+    }
     public static Cliente? MenuTool_NavegarCliente(string titulo)
     {
         int indice = 0;
@@ -1046,15 +1365,19 @@ public class Program
         produtos.Clear();
         clientes.Clear();
         fornecedores.Clear();
+        vendas.Clear();
+        historicos.Clear();
         quantidadeProdutos = 0;
         quantidadeClientes = 0;
         quantidadeFornecedores = 0;
+        quantidadeVendas = 0;
+        quantidadeHistorico = 0;
         SalvarDados();
     }
     
     public static void SalvarDados()
     {
-        Dados dados = new Dados(produtos, clientes, fornecedores, historicos, quantidadeProdutos, quantidadeClientes, quantidadeFornecedores, quantidadeHistorico);
+        Dados dados = new Dados(produtos, vendas, clientes, fornecedores, historicos, quantidadeProdutos, quantidadeVendas, quantidadeClientes, quantidadeFornecedores, quantidadeHistorico);
         string json = JsonSerializer.Serialize(dados);
         File.WriteAllText(caminhoSalvamento, json);
     }
@@ -1075,10 +1398,12 @@ public class Program
             if(dados != null)
             {
                 produtos = dados.produtos;
+                vendas = dados.vendas;
                 clientes = dados.clientes;
                 fornecedores = dados.fornecedores;
                 historicos = dados.historicos;
                 quantidadeProdutos = dados.quantidadeProdutos;
+                quantidadeVendas = dados.quantidadeVendas;
                 quantidadeClientes = dados.quantidadeClientes;
                 quantidadeFornecedores = dados.quantidadeFornecedores;
                 quantidadeHistorico = dados.quantidadeHistorico;

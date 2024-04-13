@@ -276,7 +276,7 @@ public class Program
         Produto? produto = MenuTool_NavegarProduto("Editar produto:", false, false);
         if(produto == null) return;
 
-        List<string> opcoes = new List<string> { $"Nome: {produto.nome}", $"Descrição: {produto.descricao}", $"Preço: {produto.preco}", $"Categoria: {produto.categoria}", $"Quantidade em estoque: {produto.quantidadeEstoque}", $"Permitir vendas sem estoque? {(produto.permitirVendaSemEstoque ? "Sim" : "Não")}", "Voltar" };
+        List<string> opcoes = new List<string> { $"Nome: {produto.nome}", $"Descrição: {produto.descricao}", $"Preço: {Real(produto.preco)}", $"Categoria: {produto.categoria}", $"Quantidade em estoque: {produto.quantidadeEstoque}", $"Permitir vendas sem estoque? {(produto.permitirVendaSemEstoque ? "Sim" : "Não")}", "Voltar" };
         int indice = MenuTool_Navegar("Editar produto:", opcoes);
 
         switch(indice)
@@ -553,7 +553,7 @@ public class Program
 
         double valorTotal = quantidadeInt * produto.preco;
         List<string> opcoes = new List<string> { "Sim", "Não" };
-        int indice = MenuTool_Navegar($"Valor total: R${valorTotal}\nDeseja alterar o valor?", opcoes);
+        int indice = MenuTool_Navegar($"Valor total: {Real(valorTotal)}\nDeseja alterar o valor?", opcoes);
 
         if(indice == 0)
         {
@@ -590,7 +590,7 @@ public class Program
         Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
         Cliente cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
 
-        Console.WriteLine($"Venda #{venda.codigo}\nProduto: {produto.nome} ({venda.quantidade})\nCliente: {cliente.nome}\nData: {venda.data}\nValor total: R${venda.valorTotal}\n");
+        Console.WriteLine($"Venda #{venda.codigo}\nProduto: {produto.nome} ({venda.quantidade})\nCliente: {cliente.nome}\nData: {venda.data}\nValor total: {Real(venda.valorTotal)}\n");
         List<string> opcoes = new List<string> { "Cancelar", "Voltar" };
         int indice = MenuTool_Navegar("Venda:", opcoes);
         if(indice == 1) return;
@@ -652,7 +652,7 @@ public class Program
 
         double valorTotal = quantidadeInt * produto.preco;
         List<string> opcoes = new List<string> { "Sim", "Não" };
-        int indice = MenuTool_Navegar($"Valor total: R${valorTotal}\nDeseja alterar o valor?", opcoes);
+        int indice = MenuTool_Navegar($"Valor total: {Real(valorTotal)}\nDeseja alterar o valor?", opcoes);
 
         if(indice == 0)
         {
@@ -689,7 +689,7 @@ public class Program
         Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
         Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
 
-        Console.WriteLine($"Compra #{compra.codigo}\nProduto: {produto.nome} ({compra.quantidade})\nFornecedor: {fornecedor.nome}\nData: {compra.data}\nValor total: R${compra.valorTotal}\n");
+        Console.WriteLine($"Compra #{compra.codigo}\nProduto: {produto.nome} ({compra.quantidade})\nFornecedor: {fornecedor.nome}\nData: {compra.data}\nValor total: {Real(compra.valorTotal)}\n");
         List<string> opcoes = new List<string> { "Cancelar", "Voltar" };
         int indice = MenuTool_Navegar("Compra:", opcoes);
         if(indice == 1) return;
@@ -1005,7 +1005,7 @@ public class Program
     public static void MenuRelatorios()
     {
         Console.Clear();
-        List<string> opcoes = new List<string> { "Gerar relatório cliente", "Voltar" };
+        List<string> opcoes = new List<string> { "Gerar relatório cliente", "Gerar relatório fornecedor", "Gerar relatório geral", "Voltar" };
         int indice = MenuTool_Navegar("Relatórios:", opcoes);
         
         switch(indice)
@@ -1013,8 +1013,14 @@ public class Program
             case 0:
                 MenuRelatorioCliente();
                 break;
-            case -1:
             case 1:
+                MenuRelatorioFornecedor();
+                break;
+            case 2:
+                MenuRelatorioGeral();
+                break;
+            case -1:
+            case 3:
                 return;
         }
         MenuRelatorios();
@@ -1043,10 +1049,72 @@ public class Program
         foreach(Venda venda in vendasCliente)
         {
             Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
-            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - R${venda.valorTotal}");
+            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - {Real(venda.valorTotal)}");
             valorTotal += venda.valorTotal;
         }
-        Console.WriteLine($"\nValor total: R${valorTotal}\n");
+        Console.WriteLine($"\nValor total: {Real(valorTotal)}\n");
+        PressioneQualquerTecla();
+    }
+
+    public static void MenuRelatorioFornecedor()
+    {
+        Console.Clear();
+        if(fornecedores.Count == 0)
+        {
+            Alert("Nenhum fornecedor cadastrado!");
+            return;
+        }
+        Fornecedor? fornecedor = MenuTool_NavegarFornecedor("Escolha um fornecedor para o relatório:");
+        if(fornecedor == null) return;
+
+        List<Compra> comprasFornecedor = compras.FindAll(c => c.codigoFornecedor == fornecedor.codigo);
+        if(comprasFornecedor.Count == 0)
+        {
+            Alert("Nenhuma compra registrada para este fornecedor!");
+            return;
+        }
+
+        Console.WriteLine($"Relatório do fornecedor: {fornecedor.nome}\n");
+        double valorTotal = 0;
+        foreach(Compra compra in comprasFornecedor)
+        {
+            Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
+            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produto.nome} ({compra.quantidade}) - {Real(compra.valorTotal)}");
+            valorTotal += compra.valorTotal;
+        }
+        Console.WriteLine($"\nValor total: {Real(valorTotal)}\n");
+        PressioneQualquerTecla();
+    }
+
+    public static void MenuRelatorioGeral()
+    {
+        Console.Clear();
+        if(vendas.Count == 0 && compras.Count == 0)
+        {
+            Alert("Nenhuma venda ou compra registrada!");
+            return;
+        }
+
+        Console.WriteLine("Relatório Geral:\nVendas:\n");
+        double valorTotalVendas = 0;
+        foreach(Venda venda in vendas)
+        {
+            Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
+            Cliente cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
+            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - {Real(venda.valorTotal)} - {cliente.nome}");
+            valorTotalVendas += venda.valorTotal;
+        }
+        Console.WriteLine($"\nValor total vendas: {Real(valorTotalVendas)}\n\nCompras:\n");
+
+        double valorTotalCompras = 0;
+        foreach(Compra compra in compras)
+        {
+            Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
+            Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
+            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produto.nome} ({compra.quantidade}) - {Real(compra.valorTotal)} - {fornecedor.nome}");
+            valorTotalCompras += compra.valorTotal;
+        }
+        Console.WriteLine($"\nValor total compras: {Real(valorTotalCompras)}\n\nSaldo final: {Real(valorTotalVendas - valorTotalCompras)}\n");
         PressioneQualquerTecla();
     }
 
@@ -1176,7 +1244,7 @@ public class Program
                 else Console.Write(" ");
                 Console.Write($"#{produtos[i].codigo} - {produtos[i].nome}");
                 if(exibirEstoque) Console.Write($" ({produtos[i].quantidadeEstoque})");
-                if(exibirPreco) Console.Write($" - R${produtos[i].preco}");
+                if(exibirPreco) Console.Write($" - {Real(produtos[i].preco)}");
                 Console.WriteLine();
             }
             Console.WriteLine();
@@ -1413,6 +1481,7 @@ public class Program
     public static int MenuTool_TentarConverterParaInteiro(string valor) { try { return int.Parse(valor); } catch { return 0; } }
     public static double MenuTool_TentarConverterParaDouble(string valor) { try { return double.Parse(valor); } catch { return 0; } }
     public static string HorarioAtual() => DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+    public static string Real(double valor) => $"R{valor.ToString("C")}";
 
     public static void AdicionarHistorico(string descricao)
     {

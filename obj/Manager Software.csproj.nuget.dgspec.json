@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Danie\\Desktop\\Terminal-CRM\\Manager Software.csproj": {}
+    "/home/notebook/Documents/GitHub/Terminal-CRM/Manager Software.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Danie\\Desktop\\Terminal-CRM\\Manager Software.csproj": {
+    "/home/notebook/Documents/GitHub/Terminal-CRM/Manager Software.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Danie\\Desktop\\Terminal-CRM\\Manager Software.csproj",
+        "projectUniqueName": "/home/notebook/Documents/GitHub/Terminal-CRM/Manager Software.csproj",
         "projectName": "Manager Software",
-        "projectPath": "C:\\Users\\Danie\\Desktop\\Terminal-CRM\\Manager Software.csproj",
-        "packagesPath": "C:\\Users\\Danie\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Danie\\Desktop\\Terminal-CRM\\obj\\",
+        "projectPath": "/home/notebook/Documents/GitHub/Terminal-CRM/Manager Software.csproj",
+        "packagesPath": "/home/notebook/.nuget/packages/",
+        "outputPath": "/home/notebook/Documents/GitHub/Terminal-CRM/obj/",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "F:\\Aplicativos\\Visual Studio Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\Danie\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/home/notebook/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -38,6 +32,11 @@
           "warnAsError": [
             "NU1605"
           ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
         }
       },
       "frameworks": {
@@ -59,7 +58,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/snap/dotnet-sdk/241/sdk/8.0.204/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

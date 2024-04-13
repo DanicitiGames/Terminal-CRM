@@ -568,9 +568,8 @@ public class Program
         }
 
         produto.quantidadeEstoque -= quantidadeInt;
-        quantidadeHistorico++;
         quantidadeVendas++;
-        Venda venda = new Vendas(quantidadeVendas, produto.codigo, cliente.codigo, DateTime.Now.ToString("dd/MM/yyyy"), quantidadeInt, valorTotal, 1);
+        Venda venda = new Venda(quantidadeVendas, produto.codigo, cliente.codigo, HorarioAtual(), quantidadeInt, valorTotal, 1);
         vendas.Add(venda);
         AdicionarHistorico($"Venda registrada: {produto.nome} ({quantidadeInt}) - {cliente.nome}");
         SalvarDados();
@@ -630,7 +629,7 @@ public class Program
     }
 
     public static void MenuRegistrarCompra()
-    [
+    {
         Console.Clear();
         Console.WriteLine("Registrar Compra:");
         Produto? produto = MenuTool_NavegarProduto("Escolha um produto:", true, true);
@@ -667,11 +666,35 @@ public class Program
             valorTotal = novoValorDouble;
         }
 
-
+        produto.quantidadeEstoque += quantidadeInt;
+        quantidadeCompras++;
+        Compra compra = new Compra(quantidadeCompras, produto.codigo, fornecedor.codigo, HorarioAtual(), quantidadeInt, valorTotal, 1);
+        compras.Add(compra);
         AdicionarHistorico($"Compra registrada: {produto.nome} ({quantidadeInt}) - {fornecedor.nome}");
         SalvarDados();
         Alert("Compra registrada com sucesso!");
-    ]
+    }
+
+    public static void MenuListarCompras()
+    {
+        Console.Clear();
+        if(compras.Count == 0)
+        {
+            Alert("Nenhuma compra registrada!");
+            return;
+        }
+        Compra? compra = MenuTool_NavegarCompra("Compras:");
+        if(compra == null) return;
+
+        Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
+        Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
+
+        Console.WriteLine($"Compra #{compra.codigo}\nProduto: {produto.nome} ({compra.quantidade})\nFornecedor: {fornecedor.nome}\nData: {compra.data}\nValor total: R${compra.valorTotal}\n");
+        List<string> opcoes = new List<string> { "Cancelar", "Voltar" };
+        int indice = MenuTool_Navegar("Compra:", opcoes);
+        if(indice == 1) return;
+        compra.situacao = 0;
+    }
 
     public static void MenuClientes()
     {
@@ -1020,7 +1043,7 @@ public class Program
         foreach(Venda venda in vendasCliente)
         {
             Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
-            Console.WriteLine($"#{venda.codigo} - {produto.nome} ({venda.quantidade}) - R${venda.valorTotal}");
+            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - R${venda.valorTotal}");
             valorTotal += venda.valorTotal;
         }
         Console.WriteLine($"\nValor total: R${valorTotal}\n");
@@ -1248,6 +1271,44 @@ public class Program
                 case ConsoleKey.Enter:
                     Console.Clear();
                     return vendas[indice];
+                default:
+                    break;
+            }
+        }
+    }
+    public static Compra? MenuTool_NavegarCompra(string titulo)
+    {
+        int indice = 0;
+        while(true)
+        {
+            Console.Clear();
+            if(titulo != "") Console.WriteLine(titulo);
+            Console.WriteLine("Escolha utilizando as setas ↑ ↓ ou aperte ← para voltar:");
+            for(int i = 0; i < compras.Count; i++)
+            {
+                if(i == indice) Console.Write(">");
+                else Console.Write(" ");
+                Produto produto = produtos.Find(p => p.codigo == compras[i].codigoProduto);
+                Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compras[i].codigoFornecedor);
+                Console.WriteLine($"{compras[i].data} #{compras[i].codigo} - {produto.nome} ({compras[i].quantidade}) - {fornecedor.nome}");
+            }
+            Console.WriteLine();
+            switch(Console.ReadKey().Key)
+            {
+                case ConsoleKey.UpArrow:
+                    if(indice > 0) indice--;
+                    else indice = compras.Count-1;
+                    break;
+                case ConsoleKey.DownArrow:
+                    if(indice < compras.Count-1) indice++;
+                    else indice = 0;
+                    break;
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.Backspace:
+                    return null;
+                case ConsoleKey.Enter:
+                    Console.Clear();
+                    return compras[indice];
                 default:
                     break;
             }

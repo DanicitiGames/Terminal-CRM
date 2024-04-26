@@ -10,24 +10,28 @@ public class Dados
 {
     public List<Produto> produtos { get; set; }
     public List<Venda> vendas {get; set; }
+    public List<Compra> compras { get; set; }
     public List<Cliente> clientes { get; set; }
     public List<Fornecedor> fornecedores { get; set; }
     public List<Historico> historicos { get; set; }
     public int quantidadeProdutos { get; set; }
     public int quantidadeVendas { get; set; }
+    public int quantidadeCompras { get; set; }
     public int quantidadeClientes { get; set; }
     public int quantidadeFornecedores { get; set; }
     public int quantidadeHistorico { get; set; }
 
-    public Dados(List<Produto> produtos, List<Venda> vendas, List<Cliente> clientes, List<Fornecedor> fornecedores, List<Historico> historicos, int quantidadeProdutos, int quantidadeVendas, int quantidadeClientes, int quantidadeFornecedores, int quantidadeHistorico)
+    public Dados(List<Produto> produtos, List<Venda> vendas, List<Compra> compras, List<Cliente> clientes, List<Fornecedor> fornecedores, List<Historico> historicos, int quantidadeProdutos, int quantidadeVendas, int quantidadeCompras, int quantidadeClientes, int quantidadeFornecedores, int quantidadeHistorico)
     {
         this.produtos = produtos;
         this.vendas = vendas;
+        this.compras = compras;
         this.clientes = clientes;
         this.fornecedores = fornecedores;
         this.historicos = historicos;
         this.quantidadeProdutos = quantidadeProdutos;
         this.quantidadeVendas = quantidadeVendas;
+        this.quantidadeCompras = quantidadeCompras;
         this.quantidadeClientes = quantidadeClientes;
         this.quantidadeFornecedores = quantidadeFornecedores;
         this.quantidadeHistorico = quantidadeHistorico;
@@ -1101,7 +1105,7 @@ public class Program
         {
             Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
             Cliente cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
-            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - {Real(venda.valorTotal)} - {cliente.nome}");
+            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - {cliente.nome} - {Real(venda.valorTotal)}");
             valorTotalVendas += venda.valorTotal;
         }
         Console.WriteLine($"\nValor total vendas: {Real(valorTotalVendas)}\n\nCompras:\n");
@@ -1111,7 +1115,7 @@ public class Program
         {
             Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
             Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
-            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produto.nome} ({compra.quantidade}) - {Real(compra.valorTotal)} - {fornecedor.nome}");
+            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produto.nome} ({compra.quantidade}) - {fornecedor.nome} - {Real(compra.valorTotal)}");
             valorTotalCompras += compra.valorTotal;
         }
         Console.WriteLine($"\nValor total compras: {Real(valorTotalCompras)}\n\nSaldo final: {Real(valorTotalVendas - valorTotalCompras)}\n");
@@ -1320,7 +1324,7 @@ public class Program
                 else Console.Write(" ");
                 Produto produto = produtos.Find(p => p.codigo == vendas[i].codigoProduto);
                 Cliente cliente = clientes.Find(c => c.codigo == vendas[i].codigoCliente);
-                Console.WriteLine($"{vendas[i].data} #{vendas[i].codigo} - {produto.nome} ({vendas[i].quantidade}) - {cliente.nome}");
+                Console.WriteLine($"{vendas[i].data} #{vendas[i].codigo} - {produto.nome} ({vendas[i].quantidade}) - {cliente.nome} - {Real(vendas[i].valorTotal)}");
             }
             Console.WriteLine();
             switch(Console.ReadKey().Key)
@@ -1358,7 +1362,7 @@ public class Program
                 else Console.Write(" ");
                 Produto produto = produtos.Find(p => p.codigo == compras[i].codigoProduto);
                 Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compras[i].codigoFornecedor);
-                Console.WriteLine($"{compras[i].data} #{compras[i].codigo} - {produto.nome} ({compras[i].quantidade}) - {fornecedor.nome}");
+                Console.WriteLine($"{compras[i].data} #{compras[i].codigo} - {produto.nome} ({compras[i].quantidade}) - {fornecedor.nome} - {Real(compras[i].valorTotal)}");
             }
             Console.WriteLine();
             switch(Console.ReadKey().Key)
@@ -1493,21 +1497,23 @@ public class Program
     public static void FormatarDados()
     {
         produtos.Clear();
+        vendas.Clear();
+        compras.Clear();
         clientes.Clear();
         fornecedores.Clear();
-        vendas.Clear();
         historicos.Clear();
         quantidadeProdutos = 0;
+        quantidadeVendas = 0;
+        quantidadeCompras = 0;
         quantidadeClientes = 0;
         quantidadeFornecedores = 0;
-        quantidadeVendas = 0;
         quantidadeHistorico = 0;
         SalvarDados();
     }
     
     public static void SalvarDados()
     {
-        Dados dados = new Dados(produtos, vendas, clientes, fornecedores, historicos, quantidadeProdutos, quantidadeVendas, quantidadeClientes, quantidadeFornecedores, quantidadeHistorico);
+        Dados dados = new Dados(produtos, vendas, compras, clientes, fornecedores, historicos, quantidadeProdutos, quantidadeVendas, quantidadeCompras, quantidadeClientes, quantidadeFornecedores, quantidadeHistorico);
         string json = JsonSerializer.Serialize(dados);
         File.WriteAllText(caminhoSalvamento, json);
     }
@@ -1529,11 +1535,13 @@ public class Program
             {
                 produtos = dados.produtos;
                 vendas = dados.vendas;
+                compras = dados.compras;
                 clientes = dados.clientes;
                 fornecedores = dados.fornecedores;
                 historicos = dados.historicos;
                 quantidadeProdutos = dados.quantidadeProdutos;
                 quantidadeVendas = dados.quantidadeVendas;
+                quantidadeCompras = dados.quantidadeCompras;
                 quantidadeClientes = dados.quantidadeClientes;
                 quantidadeFornecedores = dados.quantidadeFornecedores;
                 quantidadeHistorico = dados.quantidadeHistorico;

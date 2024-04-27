@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.IO;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.Json.Nodes;
 
 public class Dados
 {
@@ -591,10 +586,13 @@ public class Program
         Venda? venda = MenuTool_NavegarVenda("Vendas:");
         if(venda == null) return;
 
-        Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
-        Cliente cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
+        Produto? produto = produtos.Find(p => p.codigo == venda.codigoProduto);
+        Cliente? cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
 
-        Console.WriteLine($"Venda #{venda.codigo}\nProduto: {produto.nome} ({venda.quantidade})\nCliente: {cliente.nome}\nData: {venda.data}\nValor total: {Real(venda.valorTotal)}\n");
+        string produtoNome = produto == null ? "Produto excluído" : produto.nome;
+        string clienteNome = cliente == null ? "Cliente excluído" : cliente.nome;
+
+        Console.WriteLine($"Venda #{venda.codigo}\nProduto: {produtoNome} ({venda.quantidade})\nCliente: {clienteNome}\nData: {venda.data}\nValor total: {Real(venda.valorTotal)}\n");
         List<string> opcoes = new List<string> { "Cancelar", "Voltar" };
         int indice = MenuTool_Navegar("Venda:", opcoes);
         if(indice == 1) return;
@@ -690,10 +688,13 @@ public class Program
         Compra? compra = MenuTool_NavegarCompra("Compras:");
         if(compra == null) return;
 
-        Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
-        Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
+        Produto? produto = produtos.Find(p => p.codigo == compra.codigoProduto);
+        Fornecedor? fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
 
-        Console.WriteLine($"Compra #{compra.codigo}\nProduto: {produto.nome} ({compra.quantidade})\nFornecedor: {fornecedor.nome}\nData: {compra.data}\nValor total: {Real(compra.valorTotal)}\n");
+        string produtoNome = produto == null ? "Produto excluído" : produto.nome;
+        string fornecedorNome = fornecedor == null ? "Fornecedor excluído" : fornecedor.nome;
+
+        Console.WriteLine($"Compra #{compra.codigo}\nProduto: {produtoNome} ({compra.quantidade})\nFornecedor: {fornecedorNome}\nData: {compra.data}\nValor total: {Real(compra.valorTotal)}\n");
         List<string> opcoes = new List<string> { "Cancelar", "Voltar" };
         int indice = MenuTool_Navegar("Compra:", opcoes);
         if(indice == 1) return;
@@ -1052,8 +1053,11 @@ public class Program
         double valorTotal = 0;
         foreach(Venda venda in vendasCliente)
         {
-            Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
-            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - {Real(venda.valorTotal)}");
+            Produto? produto = produtos.Find(p => p.codigo == venda.codigoProduto);
+
+            string produtoNome = produto == null ? "Produto excluído" : produto.nome;
+
+            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produtoNome} ({venda.quantidade}) - {Real(venda.valorTotal)}");
             valorTotal += venda.valorTotal;
         }
         Console.WriteLine($"\nValor total: {Real(valorTotal)}\n");
@@ -1082,8 +1086,11 @@ public class Program
         double valorTotal = 0;
         foreach(Compra compra in comprasFornecedor)
         {
-            Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
-            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produto.nome} ({compra.quantidade}) - {Real(compra.valorTotal)}");
+            Produto? produto = produtos.Find(p => p.codigo == compra.codigoProduto);
+
+            string produtoNome = produto == null ? "Produto excluído" : produto.nome;
+
+            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produtoNome} ({compra.quantidade}) - {Real(compra.valorTotal)}");
             valorTotal += compra.valorTotal;
         }
         Console.WriteLine($"\nValor total: {Real(valorTotal)}\n");
@@ -1103,9 +1110,13 @@ public class Program
         double valorTotalVendas = 0;
         foreach(Venda venda in vendas)
         {
-            Produto produto = produtos.Find(p => p.codigo == venda.codigoProduto);
-            Cliente cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
-            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produto.nome} ({venda.quantidade}) - {cliente.nome} - {Real(venda.valorTotal)}");
+            Produto? produto = produtos.Find(p => p.codigo == venda.codigoProduto);
+            Cliente? cliente = clientes.Find(c => c.codigo == venda.codigoCliente);
+            
+            string produtoNome = produto == null ? "Produto excluído" : produto.nome;
+            string clienteNome = cliente == null ? "Cliente excluído" : cliente.nome;
+
+            Console.WriteLine($"#{venda.codigo} - {venda.data} - {produtoNome} ({venda.quantidade}) - {clienteNome} - {Real(venda.valorTotal)}");
             valorTotalVendas += venda.valorTotal;
         }
         Console.WriteLine($"\nValor total vendas: {Real(valorTotalVendas)}\n\nCompras:\n");
@@ -1113,9 +1124,13 @@ public class Program
         double valorTotalCompras = 0;
         foreach(Compra compra in compras)
         {
-            Produto produto = produtos.Find(p => p.codigo == compra.codigoProduto);
-            Fornecedor fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
-            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produto.nome} ({compra.quantidade}) - {fornecedor.nome} - {Real(compra.valorTotal)}");
+            Produto? produto = produtos.Find(p => p.codigo == compra.codigoProduto);
+            Fornecedor? fornecedor = fornecedores.Find(f => f.codigo == compra.codigoFornecedor);
+
+            string produtoNome = produto == null ? "Produto excluído" : produto.nome;
+            string fornecedorNome = fornecedor == null ? "Fornecedor excluído" : fornecedor.nome;
+
+            Console.WriteLine($"#{compra.codigo} - {compra.data} - {produtoNome} ({compra.quantidade}) - {fornecedorNome} - {Real(compra.valorTotal)}");
             valorTotalCompras += compra.valorTotal;
         }
         Console.WriteLine($"\nValor total compras: {Real(valorTotalCompras)}\n\nSaldo final: {Real(valorTotalVendas - valorTotalCompras)}\n");
@@ -1485,7 +1500,7 @@ public class Program
     public static int MenuTool_TentarConverterParaInteiro(string valor) { try { return int.Parse(valor); } catch { return 0; } }
     public static double MenuTool_TentarConverterParaDouble(string valor) { try { return double.Parse(valor); } catch { return 0; } }
     public static string HorarioAtual() => DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
-    public static string Real(double valor) => $"R{valor.ToString("C")}";
+    public static string Real(double valor) => $"{valor.ToString("C")}";
 
     public static void AdicionarHistorico(string descricao)
     {
